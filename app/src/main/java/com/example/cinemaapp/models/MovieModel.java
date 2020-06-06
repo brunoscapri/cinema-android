@@ -6,6 +6,7 @@ import android.os.Parcelable;
 import java.util.ArrayList;
 
 public class MovieModel implements Parcelable {
+    private String documentID;
     private String ComingSoon;
     private String totalSeasons;
     private String Title;
@@ -104,6 +105,7 @@ public class MovieModel implements Parcelable {
         Type = in.readString();
         Response = in.readString();
         Images = in.createStringArrayList();
+        documentID = in.readString();
     }
 
     @Override
@@ -131,6 +133,7 @@ public class MovieModel implements Parcelable {
         dest.writeString(Type);
         dest.writeString(Response);
         dest.writeStringList(Images);
+        dest.writeString(documentID);
     }
 
     @Override
@@ -149,6 +152,14 @@ public class MovieModel implements Parcelable {
             return new MovieModel[size];
         }
     };
+
+    public String getDocumentID() {
+        return documentID;
+    }
+
+    public void setDocumentID(String documentID) {
+        this.documentID = documentID;
+    }
 
     public String getComingSoon() {
         return ComingSoon;

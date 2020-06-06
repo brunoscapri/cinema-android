@@ -4,11 +4,19 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.media.Image;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import com.example.cinemaapp.R;
 import com.example.cinemaapp.models.MovieModel;
+import com.example.cinemaapp.stores.MovieStore;
+import com.example.cinemaapp.stores.UserStore;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.squareup.picasso.Picasso;
 import com.synnapps.carouselview.CarouselView;
 import com.synnapps.carouselview.ImageListener;
@@ -16,6 +24,8 @@ import com.synnapps.carouselview.ImageListener;
 import java.util.ArrayList;
 
 public class MovieActivity extends AppCompatActivity {
+
+    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     CarouselView carouselView;
     ArrayList<String> images;
@@ -32,6 +42,9 @@ public class MovieActivity extends AppCompatActivity {
     TextView actors;
     TextView writer;
     TextView title;
+
+    Switch switchButton;
+    boolean favorite;
 
 
     @Override
@@ -59,6 +72,7 @@ public class MovieActivity extends AppCompatActivity {
         actors = findViewById(R.id.actors);
         writer = findViewById(R.id.writer);
         title = findViewById(R.id.title);
+        switchButton = findViewById(R.id.switchButton);
 
         plot.setText(movie.getPlot());
         genre.setText(movie.getGenre());
@@ -73,6 +87,32 @@ public class MovieActivity extends AppCompatActivity {
 
 
         carouselView = findViewById(R.id.carouselView);
+        ArrayList<MovieModel> favorites = MovieStore.getInstance().getFavorites();
+
+        System.out.println("SIZE " + favorites.size());
+
+
+
+
+        if(linearSearch(favorites)){
+            switchButton.setChecked(true);
+            favorite = true;
+        }else{
+            switchButton.setChecked(false);
+            favorite = false;
+        }
+
+        switchButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(!favorite){
+                    setFavorite();
+                }else{
+                    unFavorite();
+                }
+            }
+        });
+
 
         if(images != null){
             carouselView.setPageCount(images.size());
@@ -88,4 +128,38 @@ public class MovieActivity extends AppCompatActivity {
             Picasso.get().load(images.get(position)).into(imageView);
         }
     };
+
+    boolean linearSearch(ArrayList<MovieModel> favorites){
+        for (MovieModel element : favorites) {
+            if (element.getTitle().equals(movie.getTitle())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void setFavorite(){
+        DocumentReference users = db.collection("users")
+                .document(UserStore.getInstance().getUserUID());
+
+        users.update("favorites", FieldValue.arrayUnion(movie.getDocumentID()));
+
+        MovieStore.getInstance().pushFavorites(movie);
+
+        favorite = true;
+
+    }
+
+    void unFavorite(){
+
+        DocumentReference users = db.collection("users")
+                .document(UserStore.getInstance().getUserUID());
+
+        users.update("favorites", FieldValue.arrayRemove(movie.getDocumentID()));
+        favorite = false;
+
+        MovieStore.getInstance().popFavorites(movie);
+    }
+
+
 }

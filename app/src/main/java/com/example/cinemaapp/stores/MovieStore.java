@@ -10,7 +10,7 @@ public class MovieStore {
     private static MovieStore instance = new MovieStore();
 
     ArrayList<MovieModel> movies = new ArrayList<>();
-
+    ArrayList<MovieModel> favorites = new ArrayList<>();
 
     public static MovieStore getInstance() {
         return instance;
@@ -22,7 +22,27 @@ public class MovieStore {
 
     }
 
+    public void setFavorites(ArrayList<MovieModel> favorites) {
+        this.favorites.clear();
+        this.favorites.addAll(favorites);
+
+    }
+
     public ArrayList<MovieModel> getMovies() {
         return movies;
     }
+
+    public ArrayList<MovieModel> getFavorites() {
+        return favorites;
+    }
+
+    public void popFavorites(MovieModel movieToPop){
+        favorites.remove(movieToPop);
+
+    }
+
+    public void pushFavorites(MovieModel movieToPush){
+        favorites.add(movieToPush);
+    }
+
 }

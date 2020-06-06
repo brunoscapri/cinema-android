@@ -6,7 +6,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.graphics.Movie;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -31,20 +30,31 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 
 
-import java.sql.SQLOutput;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class HomeActivity extends AppCompatActivity {
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final Gson gson = new Gson();
     ArrayList<MovieModel> movies = new ArrayList<>();
+    ArrayList<MovieModel> favMovies = new ArrayList<>();
+    ArrayList<String> favoriteIds = new ArrayList<>();
+
+
     MovieListAdapter adapter = new MovieListAdapter(this);
     Button bFilter;
     RecyclerView movieList;
     TextView label;
 
+    @Override
+    protected void onRestart() {
+        super.onRestart();
 
+        //returnAllMovies();
+        returnFavoriteMovies();
+
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,13 +83,13 @@ public class HomeActivity extends AppCompatActivity {
         label = findViewById(R.id.label);
 
         returnAllMovies();
-
+        returnFavoriteMovies();
 
 
         bFilter.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                updateToFavorites();
             }
         });
     }
@@ -93,13 +103,17 @@ public class HomeActivity extends AppCompatActivity {
                     @Override
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
                         if (task.isSuccessful()) {
+                            movies.clear();
+
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 Map<String, Object> data = document.getData();
                                 JsonElement jsonElement = gson.toJsonTree(data);
                                 MovieModel movie = gson.fromJson(jsonElement, MovieModel.class);
+                                movie.setDocumentID(document.getId());
+                                System.out.println("DOCUMENT ID " + document.getId());
                                 movies.add(movie);
                             }
-                            returnFavoriteMovies();
+
                             updateStore();
                             adapter.notifyDataSetChanged();
                         } else {
@@ -110,27 +124,72 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     public void returnFavoriteMovies(){
-
+        favMovies.clear();
+        System.out.println("Buscando favoritos");
         //getting user's favorite ids
-        db.collection("users").whereEqualTo("userUID", UserStore.getInstance().getUserUID()).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                if (task.isSuccessful()) {
-                    ArrayList<String> ids = new ArrayList<>();
-                    for (QueryDocumentSnapshot document : task.getResult()) {
-                        Map<String, Object> data = document.getData();
-                        System.out.println("salve meus compadres" + data);
-                    }
+        String userUID = UserStore.getInstance().getUserUID() + "";
+        db.collection("users")
+                .whereEqualTo("userUID", userUID)
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
 
-                } else {
-                    Log.d("", "Error getting documents: ", task.getException());
-                }
-            }
-        });
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                Map<String, Object> data = document.getData();
+                                System.out.println(data.values());
+                                favoriteIds = (ArrayList<String>) data.get("favorites");
+                            }
+                            fetchFavorites();
+                            adapter.notifyDataSetChanged();
+                        } else {
+                            Log.d("", "Error getting documents: ", task.getException());
+                        }
+                    }
+                });
+
+
+
+
     }
+
+    void fetchFavorites(){
+        for(final String favorite : favoriteIds){
+            db.collection("movies").document(favorite)
+                    .get()
+                    .addOnCompleteListener(new OnCompleteListener() {
+                        @Override
+                        public void onComplete(@NonNull Task task) {
+                            if (task.isSuccessful()) {
+                                DocumentSnapshot result = (DocumentSnapshot) task.getResult();
+                                Map<String, Object> data = result.getData();
+                                JsonElement jsonElement = gson.toJsonTree(data);
+                                MovieModel movie = gson.fromJson(jsonElement, MovieModel.class);
+                                movie.setDocumentID(favorite);
+                                favMovies.add(movie);
+                                updateStore();
+                                adapter.notifyDataSetChanged();
+                            } else {
+                                Log.d("", "Error getting documents: ", task.getException());
+                            }
+                        }
+                    });
+        }
+    }
+
+    void updateToFavorites(){
+        movies.clear();
+        movies.addAll(favMovies);
+        updateStore();
+
+    }
+
+
 
     void updateStore(){
         MovieStore.getInstance().setMovies(movies);
+        MovieStore.getInstance().setFavorites(favMovies);
         adapter.notifyDataSetChanged();
     }
 
