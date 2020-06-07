@@ -2,7 +2,6 @@ package com.example.cinemaapp.shared;
 
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,7 +22,7 @@ import java.util.List;
 
 public class MovieListAdapter extends RecyclerView.Adapter<MovieListAdapter.MovieHolder> {
 
-    private List<MovieModel> movies = MovieStore.getInstance().getMovies();
+    private List<MovieModel> movies = MovieStore.getInstance().getCurrentMovies();
     Context context;
 
     public MovieListAdapter(Context context){

@@ -5,20 +5,27 @@ import com.example.cinemaapp.models.MovieModel;
 import java.util.ArrayList;
 
 public class MovieStore {
-    //private MovieStore(){}
+    private MovieStore(){}
 
     private static MovieStore instance = new MovieStore();
 
-    ArrayList<MovieModel> movies = new ArrayList<>();
+    ArrayList<MovieModel> currentMovies = new ArrayList<>();
     ArrayList<MovieModel> favorites = new ArrayList<>();
+    ArrayList<MovieModel> allMovies = new ArrayList<>();
 
     public static MovieStore getInstance() {
         return instance;
     }
 
-    public void setMovies(ArrayList<MovieModel> movies) {
-        this.movies.clear();
-        this.movies.addAll(movies);
+    public void setCurrentMovies(ArrayList<MovieModel> movies) {
+        this.currentMovies.clear();
+        this.currentMovies.addAll(movies);
+
+    }
+
+    public void setAllMovies(ArrayList<MovieModel> movies) {
+        this.allMovies.clear();
+        this.allMovies.addAll(movies);
 
     }
 
@@ -28,16 +35,25 @@ public class MovieStore {
 
     }
 
-    public ArrayList<MovieModel> getMovies() {
-        return movies;
+    public ArrayList<MovieModel> getCurrentMovies() {
+        return currentMovies;
     }
 
     public ArrayList<MovieModel> getFavorites() {
         return favorites;
     }
 
+    public ArrayList<MovieModel> getAllMovies() {
+        return allMovies;
+    }
+
+
     public void popFavorites(MovieModel movieToPop){
-        favorites.remove(movieToPop);
+        for(MovieModel favorite : favorites){
+            if(movieToPop.getTitle().equals(favorite.getTitle())){
+                favorites.remove(favorite);
+            }
+        }
 
     }
 

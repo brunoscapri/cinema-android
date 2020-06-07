@@ -2,13 +2,12 @@ package com.example.cinemaapp.controllers;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.media.Image;
+
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.Switch;
 import android.widget.TextView;
-
 import com.example.cinemaapp.R;
 import com.example.cinemaapp.models.MovieModel;
 import com.example.cinemaapp.stores.MovieStore;
@@ -16,7 +15,6 @@ import com.example.cinemaapp.stores.UserStore;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
 import com.squareup.picasso.Picasso;
 import com.synnapps.carouselview.CarouselView;
 import com.synnapps.carouselview.ImageListener;
@@ -156,9 +154,9 @@ public class MovieActivity extends AppCompatActivity {
                 .document(UserStore.getInstance().getUserUID());
 
         users.update("favorites", FieldValue.arrayRemove(movie.getDocumentID()));
-        favorite = false;
 
         MovieStore.getInstance().popFavorites(movie);
+        favorite = false;
     }
 
 
